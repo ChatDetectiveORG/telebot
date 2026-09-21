@@ -43,3 +43,33 @@ func TestMessageBuilderAddFile(t *testing.T) {
 		t.Fatalf("photo = %#v", msg.Photo)
 	}
 }
+
+func TestMessageBuilderAddReuploadFile(t *testing.T) {
+	b := &MessageBuilder{}
+	b.AddReuploadFile("photo-id", "image/jpeg")
+	msg := b.Build(1)
+	if msg.Photo == nil {
+		t.Fatal("expected photo")
+	}
+	if msg.Photo.File.FileID != "photo-id" {
+		t.Fatalf("file id = %q", msg.Photo.File.FileID)
+	}
+	if msg.Photo.File.FileLocal != "" {
+		t.Fatalf("file local = %q, want empty", msg.Photo.File.FileLocal)
+	}
+	if !msg.Photo.File.Reupload {
+		t.Fatal("expected reupload flag")
+	}
+}
+
+func TestMessageBuilderAddReuploadVideoNote(t *testing.T) {
+	b := &MessageBuilder{}
+	b.AddReuploadVideoNote("note-id")
+	msg := b.Build(1)
+	if msg.VideoNote == nil {
+		t.Fatalf("expected video note, got %#v", msg)
+	}
+	if msg.VideoNote.File.FileID != "note-id" || !msg.VideoNote.File.Reupload {
+		t.Fatalf("video note file = %#v", msg.VideoNote.File)
+	}
+}
