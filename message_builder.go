@@ -735,8 +735,9 @@ func T(t string, a ...Args) text {
 	}
 
 	contents := t + postfix
+	// Todo: придумать лучший способ отличать обычный % от %... в fmt.Sprintf
 	if len(a) > 0 && a[0].A != nil && len(a[0].A) > 0 {
-		contents = fmt.Sprintf(strings.ReplaceAll(contents, "%", "%%"), a[0].A)
+		contents = fmt.Sprintf(strings.ReplaceAll(contents, "% ", "%% "), a[0].A...)
 	}
 
 	return &universalText{
@@ -1016,4 +1017,5 @@ type MirrorFileAsset struct {
 	FallbackPath  string
 	MimeType      string
 	MirrorFileKey string
+	IsTemporary   bool
 }
