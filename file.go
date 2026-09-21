@@ -23,6 +23,11 @@ type File struct {
 	// FileReader is used for file backed with io.Reader.
 	FileReader io.Reader `json:"-"`
 
+	// Reupload tells message-sender to download FileID to a temp file and
+	// upload it again instead of sending the cloud file_id as-is. Used for
+	// protected/view-once media that cannot be reused by file_id.
+	Reupload bool `json:"reupload,omitempty"`
+
 	fileName string
 }
 
@@ -33,8 +38,7 @@ type File struct {
 // so upon uploading media you'll need to set embedded File
 // with something. NewFile() returning File makes it a one-liner.
 //
-//		photo := &tele.Photo{File: tele.FromDisk("chicken.jpg")}
-//
+//	photo := &tele.Photo{File: tele.FromDisk("chicken.jpg")}
 func FromDisk(filename string) File {
 	return File{FileLocal: filename}
 }
@@ -46,8 +50,7 @@ func FromDisk(filename string) File {
 // so upon uploading media you'll need to set embedded File
 // with something. NewFile() returning File makes it a one-liner.
 //
-//		photo := &tele.Photo{File: tele.FromURL("https://site.com/picture.jpg")}
-//
+//	photo := &tele.Photo{File: tele.FromURL("https://site.com/picture.jpg")}
 func FromURL(url string) File {
 	return File{FileURL: url}
 }
@@ -59,8 +62,7 @@ func FromURL(url string) File {
 // so upon uploading media you'll need to set embedded File
 // with something. NewFile() returning File makes it a one-liner.
 //
-//		photo := &tele.Photo{File: tele.FromReader(bytes.NewReader(...))}
-//
+//	photo := &tele.Photo{File: tele.FromReader(bytes.NewReader(...))}
 func FromReader(reader io.Reader) File {
 	return File{FileReader: reader}
 }

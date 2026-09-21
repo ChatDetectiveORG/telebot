@@ -36,6 +36,7 @@ type MessageBuilder struct {
 	files       []mediaAttachment
 	mirrorFiles []MirrorFileAsset
 }
+
 func (self *MessageBuilder) AddMirrorFile(asset MirrorFileAsset) *MessageBuilder {
 	self.mirrorFiles = append(self.mirrorFiles, asset)
 	return self
@@ -47,7 +48,6 @@ func (self *MessageBuilder) ConsumeMirrorFiles() []MirrorFileAsset {
 	return assets
 }
 
-
 type mediaKind int
 
 const (
@@ -56,6 +56,7 @@ const (
 	mediaKindAnimation
 	mediaKindAudio
 	mediaKindVoice
+	mediaKindVideoNote
 	mediaKindDocument
 )
 
@@ -208,8 +209,8 @@ func (self *MessageBuilder) updateRedis(redisConn redis.Conn, chatID int64, page
 }
 
 type TelegramButtonConversionArgs struct {
-	pageUnique         string
-	AdditionalData     map[string]any
+	pageUnique           string
+	AdditionalData       map[string]any
 	CallbackDataProducer func(string) string
 }
 
@@ -947,6 +948,8 @@ func applyMediaAttachment(msg *Message, attachment mediaAttachment) {
 			File: attachment.file,
 			MIME: attachment.mimeType,
 		}
+	case mediaKindVideoNote:
+		msg.VideoNote = &VideoNote{File: attachment.file}
 	default:
 		msg.Document = &Document{
 			File:     attachment.file,
@@ -1008,6 +1011,36 @@ func (self *MessageBuilder) AddFile(fileID, fallbackPath, mimeType string) *Mess
 		kind:     categorizeMediaFile(mimeType, fileName),
 	})
 
+	return self
+}
+
+// AddReuploadFile attaches a Telegram cloud file that must be downloaded and
+// re-uploaded by message-sender. mimeType selects the media kind.
+func (self *MessageBuilder) AddReuploadFile(fileID, mimeType string) *MessageBuilder {
+	if fileID == "" {
+		return self
+	}
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
+	}
+	self.files = append(self.files, mediaAttachment{
+		file:     File{FileID: fileID, Reupload: true},
+		mimeType: mimeType,
+		kind:     categorizeMediaFile(mimeType, ""),
+	})
+	return self
+}
+
+// AddReuploadVideoNote attaches a video note that message-sender must re-upload.
+func (self *MessageBuilder) AddReuploadVideoNote(fileID string) *MessageBuilder {
+	if fileID == "" {
+		return self
+	}
+	self.files = append(self.files, mediaAttachment{
+		file:     File{FileID: fileID, Reupload: true},
+		mimeType: "video/mp4",
+		kind:     mediaKindVideoNote,
+	})
 	return self
 }
 
