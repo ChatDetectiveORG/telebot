@@ -277,6 +277,7 @@ func CreateGenericKeyboard[T Buttonable](
 	}
 
 	if count <= 0 {
+		appendMergeButtons(builder, params.MergeButtons)
 		return
 	}
 
@@ -311,6 +312,9 @@ func CreateGenericKeyboard[T Buttonable](
 		}
 
 		button := buttonable.ToTelegramButton(postgresDb, params.ButtonConversionArgs)
+		if button.Text == "" {
+			continue
+		}
 		builder.AddButton(button)
 
 		if len(builder.currentRow) >= params.ButtonsPerRow {
@@ -322,19 +326,22 @@ func CreateGenericKeyboard[T Buttonable](
 		builder.NextRow()
 	}
 
-	if len(params.MergeButtons) != 0 {
-		for _, row := range params.MergeButtons {
-			for _, button := range row {
-				builder.AddButton(button)
-			}
-
-			builder.NextRow()
-		}
-	}
+	appendMergeButtons(builder, params.MergeButtons)
 
 	if maxPage > 0 && params.ShowNavigation {
 		builder.AddButton(InlineButton{Text: params.ArrowBackText, Data: utils.DumpCallbackData(params.PageUnique, map[string]any{"pageDelta": -1})})
 		builder.AddButton(InlineButton{Text: params.ArrowForwardText, Data: utils.DumpCallbackData(params.PageUnique, map[string]any{"pageDelta": 1})})
+		builder.NextRow()
+	}
+}
+
+// appendMergeButtons adds extra rows under the query buttons.
+// An empty body still keeps these rows and does not add page navigation.
+func appendMergeButtons(builder *MessageBuilder, rows [][]InlineButton) {
+	for _, row := range rows {
+		for _, button := range row {
+			builder.AddButton(button)
+		}
 		builder.NextRow()
 	}
 }
