@@ -1,5 +1,11 @@
 package telebot
 
+const (
+	ButtonStyleSuccess = "success"
+	ButtonStylePrimary = "primary"
+	ButtonStyleDanger = "danger"
+)
+
 // CallbackEndpoint is an interface any element capable
 // of responding to a callback `\f<unique>`.
 type CallbackEndpoint interface {
